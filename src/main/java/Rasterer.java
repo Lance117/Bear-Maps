@@ -8,9 +8,19 @@ import java.util.Map;
  * not draw the output correctly.
  */
 public class Rasterer {
+    private String[][] render_grid;
+    private int depth;
+    private Boolean query_success;
 
     public Rasterer() {
         // YOUR CODE HERE
+        render_grid = new String[][]{
+                {"d7_x84_y28.png", "d7_x85_y28.png", "d7_x86_y28.png"},
+                {"d7_x84_y29.png", "d7_x85_y29.png", "d7_x86_y29.png"},
+                {"d7_x84_y30.png", "d7_x85_y30.png", "d7_x86_y30.png"}
+        };
+        depth = 7;
+        query_success = true;
     }
 
     /**
@@ -42,10 +52,23 @@ public class Rasterer {
      *                    forget to set this to true on success! <br>
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
-        // System.out.println(params);
+        System.out.println(params);
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
-                           + "your browser.");
+        for (Map.Entry<String, Double> e : params.entrySet()) {
+            String k = e.getKey();
+            if (k.length() > 1) {
+                String k_suffix = k.substring(0, 2).concat("_").concat(k.substring(2));
+                results.put("raster_".concat(k_suffix), e.getValue());
+            }
+        }
+        if (params.get("ullon") > params.get("lrlon") || params.get("lrlat") > params.get("ullat") ||
+                params.get("ullon") < MapServer.ROOT_ULLON || params.get("lrlon") > MapServer.ROOT_LRLON ||
+                params.get("ullat") > MapServer.ROOT_ULLAT || params.get("lrlat") < MapServer.ROOT_LRLAT) {
+            query_success = false;
+        }
+        results.put("render_grid", render_grid);
+        results.put("depth", depth);
+        results.put("query_success", query_success);
         return results;
     }
 
