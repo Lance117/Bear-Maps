@@ -8,7 +8,6 @@ import java.util.Map;
  * not draw the output correctly.
  */
 public class Rasterer {
-    private String[][] render_grid;
     private Boolean query_success;
     private static final double ROOT_W = MapServer.ROOT_LRLON - MapServer.ROOT_ULLON;
     private static final double ROOT_H = MapServer.ROOT_ULLAT - MapServer.ROOT_LRLAT;
@@ -16,10 +15,6 @@ public class Rasterer {
 
     public Rasterer() {
         // YOUR CODE HERE
-        render_grid = new String[][]{
-                {"d1_x0_y0.png", "d1_x1_y0.png"},
-                {"d1_x0_y1.png", "d1_x1_y1.png"}
-        };
         query_success = true;
     }
 
@@ -52,11 +47,11 @@ public class Rasterer {
      *                    forget to set this to true on success! <br>
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
-        //System.out.println(params);
+        System.out.println(params);
         double lonDPP = (params.get("lrlon") - params.get("ullon")) / params.get("w");
         int depth = getDepth(lonDPP);
-        for (int x : getXrange(params.get("ullon"), params.get("lrlon"), depth))
-            System.out.println(x);
+        int[] x_range = getXrange(params.get("ullon"), params.get("lrlon"), depth);
+        int[] y_range = getYrange(params.get("ullat"), params.get("lrlat"), depth);
         Map<String, Object> results = new HashMap<>();
 
         // Check for valid query box
@@ -65,9 +60,19 @@ public class Rasterer {
                 params.get("lrlat") >= MapServer.ROOT_ULLAT || params.get("ullat") <= MapServer.ROOT_LRLAT) {
             query_success = false;
         }
+
+        // Fill results map with keys and values
+        double x_step = ROOT_W / Math.pow(2, depth);
+        double y_step = ROOT_H / Math.pow(2, depth);
+        String[][] render_grid = getRenderGrid(depth, x_range, y_range);
+        results.put("raster_ul_lon", MapServer.ROOT_ULLON + x_range[0] * x_step);
+        results.put("raster_lr_lon", MapServer.ROOT_ULLON + (1.0 + x_range[1]) * x_step);
+        results.put("raster_ul_lat", MapServer.ROOT_ULLAT - y_range[0] * y_step);
+        results.put("raster_lr_lat", MapServer.ROOT_ULLAT - (1.0 + y_range[1]) * y_step);
         results.put("render_grid", render_grid);
         results.put("depth", depth);
         results.put("query_success", query_success);
+
         return results;
     }
 
@@ -125,6 +130,18 @@ public class Rasterer {
             }
         }
         res[1] = y;
+        return res;
+    }
+
+    private String[][] getRenderGrid(int depth, int[] x_range, int[] y_range) {
+        String[][] res = new String[y_range[1] - y_range[0] + 1][x_range[1] - x_range[0] + 1];
+        for (int j = 0; j + y_range[0] <= y_range[1]; j++) {
+            for (int i = 0; i + x_range[0] <= x_range[1]; i++) {
+                String filename = "d" + Integer.toString(depth) + "_x" + Integer.toString(i + x_range[0])
+                        + "_y" + Integer.toString(j + y_range[0]) + ".png";
+                res[j][i] = filename;
+            }
+        }
         return res;
     }
 }
