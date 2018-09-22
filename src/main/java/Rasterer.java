@@ -47,7 +47,7 @@ public class Rasterer {
      *                    forget to set this to true on success! <br>
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
-        System.out.println(params);
+        //System.out.println(params);
         double lonDPP = (params.get("lrlon") - params.get("ullon")) / params.get("w");
         int depth = getDepth(lonDPP);
         int[] x_range = getXrange(params.get("ullon"), params.get("lrlon"), depth);
@@ -114,6 +114,12 @@ public class Rasterer {
         return res;
     }
 
+    /**
+     * @req_ullat - ullat of query box
+     * @req_lrlat - lrlat of query box
+     * @depth - requested depth
+     * Return: array of start and end vertical tiles
+     */
     private int[] getYrange(double req_ullat, double req_lrlat, int depth) {
         int y;
         int [] res = new int[2];
@@ -133,6 +139,12 @@ public class Rasterer {
         return res;
     }
 
+    /**
+     * @depth - requested depth
+     * @x_range - array of x range for the filename
+     * @y_range - array of y range for the filename
+     * Return: render grid for getMapRaster results
+     */
     private String[][] getRenderGrid(int depth, int[] x_range, int[] y_range) {
         String[][] res = new String[y_range[1] - y_range[0] + 1][x_range[1] - x_range[0] + 1];
         for (int j = 0; j + y_range[0] <= y_range[1]; j++) {
