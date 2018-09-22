@@ -9,17 +9,17 @@ import java.util.Map;
  */
 public class Rasterer {
     private String[][] render_grid;
-    private int depth;
     private Boolean query_success;
+    private static final double ROOT_W = MapServer.ROOT_LRLON - MapServer.ROOT_ULLON;
+    private static final double ROOT_H = MapServer.ROOT_ULLAT - MapServer.ROOT_LRLAT;
+    private static final double ROOT_LONDPP = ROOT_W / MapServer.TILE_SIZE;
 
     public Rasterer() {
         // YOUR CODE HERE
         render_grid = new String[][]{
-                {"d7_x84_y28.png", "d7_x85_y28.png", "d7_x86_y28.png"},
-                {"d7_x84_y29.png", "d7_x85_y29.png", "d7_x86_y29.png"},
-                {"d7_x84_y30.png", "d7_x85_y30.png", "d7_x86_y30.png"}
+                {"d1_x0_y0.png", "d1_x1_y0.png"},
+                {"d1_x0_y1.png", "d1_x1_y1.png"}
         };
-        depth = 7;
         query_success = true;
     }
 
@@ -52,18 +52,17 @@ public class Rasterer {
      *                    forget to set this to true on success! <br>
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
-        System.out.println(params);
+        //System.out.println(params);
+        double lonDPP = (params.get("lrlon") - params.get("ullon")) / params.get("w");
+        int depth = getDepth(lonDPP);
+        for (int x : getXrange(params.get("ullon"), params.get("lrlon"), depth))
+            System.out.println(x);
         Map<String, Object> results = new HashMap<>();
-        for (Map.Entry<String, Double> e : params.entrySet()) {
-            String k = e.getKey();
-            if (k.length() > 1) {
-                String k_suffix = k.substring(0, 2).concat("_").concat(k.substring(2));
-                results.put("raster_".concat(k_suffix), e.getValue());
-            }
-        }
+
+        // Check for valid query box
         if (params.get("ullon") > params.get("lrlon") || params.get("lrlat") > params.get("ullat") ||
-                params.get("ullon") < MapServer.ROOT_ULLON || params.get("lrlon") > MapServer.ROOT_LRLON ||
-                params.get("ullat") > MapServer.ROOT_ULLAT || params.get("lrlat") < MapServer.ROOT_LRLAT) {
+                params.get("lrlon") <= MapServer.ROOT_ULLON || params.get("ullon") >= MapServer.ROOT_LRLON ||
+                params.get("lrlat") >= MapServer.ROOT_ULLAT || params.get("ullat") <= MapServer.ROOT_LRLAT) {
             query_success = false;
         }
         results.put("render_grid", render_grid);
@@ -72,4 +71,60 @@ public class Rasterer {
         return results;
     }
 
+    /**
+     * @req_lonDPP - lonDPP of the requested window
+     * Return: depth good enough to meet user's request. Max is D7
+     */
+    private int getDepth(double req_lonDPP) {
+        int depth = 0;
+        while (ROOT_LONDPP > req_lonDPP) {
+            depth++;
+            req_lonDPP *= 2;
+        }
+        return Math.min(depth, 7);
+    }
+
+    /**
+     * @req_ullon - ullon of query box
+     * @req_lrlon - lrlon of query box
+     * @depth - requested depth
+     * Return: array of start and end horizontal tiles
+     */
+    private int[] getXrange(double req_ullon, double req_lrlon, int depth) {
+       int x;
+       int[] res = new int[2];
+       double step = ROOT_W / Math.pow(2, depth);
+       double lrlon = MapServer.ROOT_ULLON + step;
+       for (x = 0; lrlon < req_ullon; x++) {
+           lrlon += step;
+       }
+       res[0] = x;
+       for ( ; lrlon < req_lrlon; x++) {
+           lrlon += step;
+           if (lrlon > MapServer.ROOT_LRLON) {
+               break;
+           }
+       }
+        res[1] = x;
+        return res;
+    }
+
+    private int[] getYrange(double req_ullat, double req_lrlat, int depth) {
+        int y;
+        int [] res = new int[2];
+        double step = ROOT_H / Math.pow(2, depth);
+        double lrlat = MapServer.ROOT_ULLAT - step;
+        for (y = 0; lrlat > req_ullat; y++) {
+            lrlat -= step;
+        }
+        res[0] = y;
+        for ( ; lrlat > req_lrlat; y++) {
+            lrlat -= step;
+            if (lrlat < MapServer.ROOT_LRLAT) {
+                break;
+            }
+        }
+        res[1] = y;
+        return res;
+    }
 }
