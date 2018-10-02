@@ -60,9 +60,11 @@ public class GraphDB {
      */
     private void clean() {
         // TODO: Your code here.
-        for (long v : nodes.keySet()) {
-            if (nodes.get(v).adj.isEmpty()) {
-                removeNode(v);
+        Iterator nodes_iterator = nodes.entrySet().iterator();
+        while (nodes_iterator.hasNext()) {
+            Map.Entry item = (Map.Entry) nodes_iterator.next();
+            if (item.getValue() == null) {
+                nodes_iterator.remove();
             }
         }
     }
@@ -177,14 +179,8 @@ public class GraphDB {
         return nodes.get(v).lat;
     }
 
-    /**
-     * Adds a node to GraphDB.
-     * @param v The id of the vertex.
-     * @param lon The longitude of the vertex.
-     * @param lat The latitude of the vertex.
-     */
-    void addNode(long v, double lon, double lat) {
-        nodes.put(v, new Node(lon, lat));
+    void addNode(Node node) {
+        nodes.put(node.id, node);
     }
 
     /**
@@ -222,12 +218,14 @@ public class GraphDB {
      * Stores information about a node.
      */
     static class Node {
+        long id;
         double lon;
         double lat;
         List<Long> adj;
         Map<String, String> tags;
 
-        Node(double lon, double lat) {
+        Node(long id, double lon, double lat) {
+            this.id = id;
             this.lon = lon;
             this.lat = lat;
             adj = new LinkedList<>();
