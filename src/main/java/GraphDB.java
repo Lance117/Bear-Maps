@@ -22,7 +22,6 @@ public class GraphDB {
      * creating helper classes, e.g. Node, Edge, etc. */
 
     private final Map<Long, Node> nodes = new HashMap<>();
-    private final Map<Long, List<Long>> adj = new HashMap<>();
 
     /**
      * Example constructor shows how to create and start an XML parser.
@@ -61,8 +60,8 @@ public class GraphDB {
      */
     private void clean() {
         // TODO: Your code here.
-        for (long v : adj.keySet()) {
-            if (adj.get(v).isEmpty()) {
+        for (long v : nodes.keySet()) {
+            if (nodes.get(v).adj.isEmpty()) {
                 removeNode(v);
             }
         }
@@ -84,7 +83,7 @@ public class GraphDB {
      */
     Iterable<Long> adjacent(long v) {
         validateVertex(v);
-        return adj.get(v);
+        return nodes.get(v).adj;
     }
 
     /**
@@ -185,17 +184,15 @@ public class GraphDB {
      */
     void addNode(long v, Node node) {
         nodes.put(v, node);
-        adj.put(v, new LinkedList<>());
     }
 
     /**
-     * Removes a node from GraphDB instance.
+     * Helper method to clean GraphDB.
      * @param v The id of the vertex.
      */
     void removeNode(long v) {
         validateVertex(v);
         nodes.remove(v);
-        adj.remove(v);
     }
 
     /**
@@ -206,8 +203,8 @@ public class GraphDB {
     void addEdge(long v, long w) {
         validateVertex(v);
         validateVertex(w);
-        adj.get(v).add(w);
-        adj.get(w).add(v);
+        nodes.get(v).adj.add(w);
+        nodes.get(w).adj.add(v);
     }
 
     /**
@@ -226,11 +223,13 @@ public class GraphDB {
     static class Node {
         double lon;
         double lat;
+        List<Long> adj;
         Map<String, String> tags;
 
         Node(double lon, double lat) {
             this.lon = lon;
             this.lat = lat;
+            adj = new LinkedList<>();
             tags = new HashMap<>();
         }
     }
