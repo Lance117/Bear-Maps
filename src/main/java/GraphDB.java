@@ -151,6 +151,7 @@ public class GraphDB {
             Node x = nodes.get(id);
             double current_dist = distance(lon(id), lat(id), lon, lat);
             if (current_dist < shortest) {
+                shortest = current_dist;
                 ret = id;
             }
         }
@@ -209,9 +210,13 @@ public class GraphDB {
         adj.get(w).add(v);
     }
 
+    /**
+     * throw an IllegalArgumentException if vertex not in graph
+     * @param v vertex to validate
+     */
     private void validateVertex(long v) {
         if (!nodes.containsKey(v)) {
-            throw new IllegalArgumentException("Vertex " + v + "is not in the graph.")
+            throw new IllegalArgumentException("Vertex " + v + "is not in the graph.");
         }
     }
 
@@ -219,13 +224,13 @@ public class GraphDB {
      * Stores information about a node.
      */
     static class Node {
-        double lat;
         double lon;
+        double lat;
         Map<String, String> tags;
 
-        Node(double lat, double lon) {
-            this.lat = lat;
+        Node(double lon, double lat) {
             this.lon = lon;
+            this.lat = lat;
             tags = new HashMap<>();
         }
     }
