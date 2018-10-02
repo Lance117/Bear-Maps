@@ -6,10 +6,7 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -64,9 +61,9 @@ public class GraphDB {
      */
     private void clean() {
         // TODO: Your code here.
-        for (long id : adj.keySet()) {
-            if (adj.get(id) == null) {
-                removeNode(id);
+        for (long v : adj.keySet()) {
+            if (adj.get(v).isEmpty()) {
+                removeNode(v);
             }
         }
     }
@@ -86,6 +83,7 @@ public class GraphDB {
      * @return An iterable of the ids of the neighbors of v.
      */
     Iterable<Long> adjacent(long v) {
+        validateVertex(v);
         return adj.get(v);
     }
 
@@ -165,6 +163,7 @@ public class GraphDB {
      * @return The longitude of the vertex.
      */
     double lon(long v) {
+        validateVertex(v);
         return nodes.get(v).lon;
     }
 
@@ -174,15 +173,46 @@ public class GraphDB {
      * @return The latitude of the vertex.
      */
     double lat(long v) {
+        validateVertex(v);
         return nodes.get(v).lat;
     }
 
-    void addNode(long id, Node node) {
-        nodes.put(id, node);
+    /**
+     * Adds a node to GraphDB.
+     * @param v The id of the vertex.
+     * @param node Node to add.
+     */
+    void addNode(long v, Node node) {
+        nodes.put(v, node);
+        adj.put(v, new LinkedList<>());
     }
 
-    void removeNode(long id) {
-        nodes.remove(id);
+    /**
+     * Removes a node from GraphDB instance.
+     * @param v The id of the vertex.
+     */
+    void removeNode(long v) {
+        validateVertex(v);
+        nodes.remove(v);
+        adj.remove(v);
+    }
+
+    /**
+     * Adds edge v-w to this graph.
+     * @param v one vertex in the edge
+     * @param w another vertex in the edge
+     */
+    void addEdge(long v, long w) {
+        validateVertex(v);
+        validateVertex(w);
+        adj.get(v).add(w);
+        adj.get(w).add(v);
+    }
+
+    private void validateVertex(long v) {
+        if (!nodes.containsKey(v)) {
+            throw new IllegalArgumentException("Vertex " + v + "is not in the graph.")
+        }
     }
 
     /**
