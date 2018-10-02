@@ -180,10 +180,11 @@ public class GraphDB {
     /**
      * Adds a node to GraphDB.
      * @param v The id of the vertex.
-     * @param node Node to add.
+     * @param lon The longitude of the vertex.
+     * @param lat The latitude of the vertex.
      */
-    void addNode(long v, Node node) {
-        nodes.put(v, node);
+    void addNode(long v, double lon, double lat) {
+        nodes.put(v, new Node(lon, lat));
     }
 
     /**
