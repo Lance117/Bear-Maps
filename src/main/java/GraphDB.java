@@ -21,7 +21,7 @@ public class GraphDB {
     /** Your instance variables for storing the graph. You should consider
      * creating helper classes, e.g. Node, Edge, etc. */
 
-    private final Map<Long, Node> nodes = new HashMap<>();
+    private final Map<Long, Node> nodes = new LinkedHashMap<>();
 
     /**
      * Example constructor shows how to create and start an XML parser.
@@ -60,10 +60,10 @@ public class GraphDB {
      */
     private void clean() {
         // TODO: Your code here.
-        Iterator nodes_iterator = nodes.entrySet().iterator();
+        Iterator<Map.Entry<Long, Node>> nodes_iterator = nodes.entrySet().iterator();
         while (nodes_iterator.hasNext()) {
-            Map.Entry item = (Map.Entry) nodes_iterator.next();
-            if (item.getValue() == null) {
+            Map.Entry<Long, Node> item = nodes_iterator.next();
+            if (item.getValue().adj.isEmpty()) {
                 nodes_iterator.remove();
             }
         }
@@ -202,6 +202,16 @@ public class GraphDB {
         validateVertex(w);
         nodes.get(v).adj.add(w);
         nodes.get(w).adj.add(v);
+    }
+
+    /**
+     * Adds all edges in a way.
+     * @param way list of nodes
+     */
+    void addWay(List<Long> way) {
+        for (int i = 1; i < way.size(); i++) {
+            addEdge(way.get(i - 1), way.get(i));
+        }
     }
 
     /**
