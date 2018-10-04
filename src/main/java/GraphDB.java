@@ -179,17 +179,9 @@ public class GraphDB {
         return nodes.get(v).lat;
     }
 
-    void addNode(Node node) {
+    void addNode(long id, double lon, double lat) {
+        Node node = new Node(id, lon, lat);
         nodes.put(node.id, node);
-    }
-
-    /**
-     * Helper method to clean GraphDB.
-     * @param v The id of the vertex.
-     */
-    void removeNode(long v) {
-        validateVertex(v);
-        nodes.remove(v);
     }
 
     /**
@@ -227,7 +219,7 @@ public class GraphDB {
     /**
      * Stores information about a node.
      */
-    static class Node {
+    private class Node {
         long id;
         double lon;
         double lat;

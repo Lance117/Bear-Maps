@@ -77,8 +77,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             long id = Long.parseLong(attributes.getValue("id"));
             double lon = Double.parseDouble(attributes.getValue("lon"));
             double lat = Double.parseDouble(attributes.getValue("lat"));
-            GraphDB.Node node = new GraphDB.Node(id, lon, lat);
-            g.addNode(node);
+            g.addNode(id, lon, lat);
 
         } else if (qName.equals("way")) {
             /* We encountered a new <way...> tag. */
