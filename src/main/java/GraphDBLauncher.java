@@ -11,7 +11,6 @@ public class GraphDBLauncher {
 
     public static void main(String[] args) {
         GraphDB g = new GraphDB(OSM_DB_PATH);
-
         Iterable<Long> verticesIterable = g.vertices();
 
         /* Convert iterable to a list. */

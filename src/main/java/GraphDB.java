@@ -180,8 +180,8 @@ public class GraphDB {
     }
 
     void addNode(long id, double lon, double lat) {
-        Node node = new Node(id, lon, lat);
-        nodes.put(node.id, node);
+        Node node = new Node(lon, lat);
+        nodes.put(id, node);
     }
 
     /**
@@ -200,10 +200,20 @@ public class GraphDB {
      * Adds all edges in a way.
      * @param way list of nodes
      */
-    void addWay(List<Long> way) {
+    void addWay(List<Long> way, String wayName) {
+        nodes.get(way.get(0)).wayNames.add(wayName);
         for (int i = 1; i < way.size(); i++) {
             addEdge(way.get(i - 1), way.get(i));
+            nodes.get(way.get(i)).wayNames.add(wayName);
         }
+    }
+
+    /**
+     * @param v vertex in the way
+     * @return set of ways this vertex belongs to
+     */
+    Set<String> getWayNames(long v) {
+        return nodes.get(v).wayNames;
     }
 
     /**
@@ -220,18 +230,16 @@ public class GraphDB {
      * Stores information about a node.
      */
     private class Node {
-        long id;
         double lon;
         double lat;
         List<Long> adj;
-        Map<String, String> tags;
+        Set<String> wayNames;
 
-        Node(long id, double lon, double lat) {
-            this.id = id;
+        Node(double lon, double lat) {
             this.lon = lon;
             this.lat = lat;
             adj = new LinkedList<>();
-            tags = new HashMap<>();
+            wayNames = new HashSet<>();
         }
     }
 }

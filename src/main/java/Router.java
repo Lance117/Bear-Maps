@@ -28,7 +28,7 @@ public class Router {
         /* Initialize structures to get shortest path */
         Map<Long, Long> edgeTo = new HashMap<>();
         Map<Long, Double> distTo = new HashMap<>();
-        List<Long> route = new ArrayList<>();
+        List<Long> route = new LinkedList<>();
         long src = g.closest(stlon, stlat);
         long dest = g.closest(destlon, destlat);
         PriorityQueue<Long> fringe = new PriorityQueue<Long>(new Comparator<Long>() {
@@ -88,7 +88,72 @@ public class Router {
      * route.
      */
     public static List<NavigationDirection> routeDirections(GraphDB g, List<Long> route) {
-        return null; // FIXME
+        List<NavigationDirection> result = new ArrayList<>();
+        long startNode = route.get(0);
+        double distance = 0;
+        int currentDirection = NavigationDirection.START;
+        String currentWay = "";
+
+        for (int i = 1; i < route.size(); i++) {
+            long prevNode = route.get(i - 1);
+            long currNode = route.get(i);
+
+            /* Get name of the current way */
+            if (prevNode == startNode) {
+                for (String a : g.getWayNames(prevNode)) {
+                    for (String b : g.getWayNames(currNode)) {
+                        if (a.equals(b)) {
+                            currentWay = a;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (g.getWayNames(currNode).contains(currentWay) && i != route.size() - 1) {
+                distance += g.distance(prevNode, currNode);
+                continue;
+            }
+
+            /* Add last stretch of distance if reached last node */
+            if (i == route.size() - 1) {
+                distance += g.distance(prevNode, currNode);
+            }
+
+            /* Get distance traveled along current way and add nav direction to result */
+            NavigationDirection turn = new NavigationDirection();
+            turn.direction = currentDirection;
+            turn.distance = distance;
+            turn.way = currentWay;
+            result.add(turn);
+
+            /* Get the next way and direction to turn */
+            startNode = currNode;
+            distance = g.distance(prevNode, currNode);
+            double relativeBearing = g.bearing(currNode, prevNode);
+            if (relativeBearing >= -15 && relativeBearing <= 15) {
+                currentDirection = turn.STRAIGHT;
+            }
+            else if (relativeBearing < -15 && relativeBearing >= -30) {
+                currentDirection = turn.SLIGHT_LEFT;
+            }
+            else if (relativeBearing > 15 && relativeBearing <= 30) {
+                currentDirection = turn.SLIGHT_RIGHT;
+            }
+            else if (relativeBearing < -30 && relativeBearing >= -100) {
+                currentDirection = turn.LEFT;
+            }
+            else if (relativeBearing > 30 && relativeBearing <= 100) {
+                currentDirection = turn.RIGHT;
+            }
+            else if (relativeBearing < -100) {
+                currentDirection = turn.SHARP_LEFT;
+            }
+            else {
+                currentDirection = turn.SHARP_RIGHT;
+            }
+        }
+        return result;
     }
 
 
