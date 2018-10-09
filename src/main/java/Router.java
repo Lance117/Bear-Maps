@@ -91,23 +91,28 @@ public class Router {
         List<NavigationDirection> result = new ArrayList<>();
         long startNode = route.get(0);
         double distance = 0;
+        double relativeBearing = 0;
+        double prevBearing = g.bearing(route.get(0), route.get(1));
         int currentDirection = NavigationDirection.START;
         String currentWay = "";
+
+        if (route.size() < 2) {
+            return null;
+        }
 
         for (int i = 1; i < route.size(); i++) {
             long prevNode = route.get(i - 1);
             long currNode = route.get(i);
+            double currBearing = g.bearing(prevNode, currNode);
+            relativeBearing = currBearing - prevBearing;
+            //System.out.println(relativeBearing);
 
             /* Get name of the current way */
             if (prevNode == startNode) {
-                for (String a : g.getWayNames(prevNode)) {
-                    for (String b : g.getWayNames(currNode)) {
-                        if (a.equals(b)) {
-                            currentWay = a;
-                            break;
-                        }
-                    }
-                }
+                currentWay = getCurrentWay(g, prevNode, currNode);
+            }
+            else {
+                prevBearing = currBearing;
             }
 
             if (g.getWayNames(currNode).contains(currentWay) && i != route.size() - 1) {
@@ -127,35 +132,54 @@ public class Router {
             turn.way = currentWay;
             result.add(turn);
 
-            /* Get the next way and direction to turn */
+            /* Start the next way and get direction to turn */
             startNode = currNode;
             distance = g.distance(prevNode, currNode);
-            double relativeBearing = g.bearing(currNode, prevNode);
-            if (relativeBearing >= -15 && relativeBearing <= 15) {
-                currentDirection = turn.STRAIGHT;
-            }
-            else if (relativeBearing < -15 && relativeBearing >= -30) {
-                currentDirection = turn.SLIGHT_LEFT;
-            }
-            else if (relativeBearing > 15 && relativeBearing <= 30) {
-                currentDirection = turn.SLIGHT_RIGHT;
-            }
-            else if (relativeBearing < -30 && relativeBearing >= -100) {
-                currentDirection = turn.LEFT;
-            }
-            else if (relativeBearing > 30 && relativeBearing <= 100) {
-                currentDirection = turn.RIGHT;
-            }
-            else if (relativeBearing < -100) {
-                currentDirection = turn.SHARP_LEFT;
-            }
-            else {
-                currentDirection = turn.SHARP_RIGHT;
-            }
+            currentDirection = getDirection(relativeBearing);
         }
         return result;
     }
 
+    /**
+     * @param g The graph to use
+     * @param v Previous vertex to check
+     * @param w Current vertex to check for current way
+     * @return current way
+     */
+    private static String getCurrentWay(GraphDB g, long v, long w) {
+        for (String a : g.getWayNames(v)) {
+            for (String b : g.getWayNames(w)) {
+                if (a.equals(b)) {
+                    return a;
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * @param relativeBearing Relative bearing between two points
+     * @return
+     */
+    private static int getDirection(double relativeBearing) {
+        double absBearing = Math.abs(relativeBearing);
+        if (absBearing > 180) {
+            absBearing = 360 - absBearing;
+            relativeBearing *= -1;
+        }
+        if (absBearing <= 15) {
+            return NavigationDirection.STRAIGHT;
+        }
+        if (absBearing <= 30) {
+            return relativeBearing < 0 ? NavigationDirection.SLIGHT_LEFT : NavigationDirection.SLIGHT_RIGHT;
+        }
+        if (absBearing <= 100) {
+            return relativeBearing < 0 ? NavigationDirection.LEFT : NavigationDirection.RIGHT;
+        }
+        else {
+            return relativeBearing < 0 ? NavigationDirection.SHARP_LEFT : NavigationDirection.SHARP_RIGHT;
+        }
+    }
 
     /**
      * Class to represent a navigation direction, which consists of 3 attributes:
