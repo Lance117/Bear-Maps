@@ -21,6 +21,7 @@ public class GraphDB {
     /** Your instance variables for storing the graph. You should consider
      * creating helper classes, e.g. Node, Edge, etc. */
 
+    private final Map<Long, Location> locations = new HashMap<>();
     private final Map<Long, Node> nodes = new HashMap<>();
     private final Map<String, List<Long>> names = new HashMap<>();
     private final TrieST<Long> st = new TrieST<>();
@@ -65,7 +66,7 @@ public class GraphDB {
         Iterator<Map.Entry<Long, Node>> nodes_iterator = nodes.entrySet().iterator();
         while (nodes_iterator.hasNext()) {
             Map.Entry<Long, Node> item = nodes_iterator.next();
-            if (item.getValue().adj.isEmpty() && item.getValue().name.isEmpty()) {
+            if (item.getValue().adj.isEmpty()) {
                 nodes_iterator.remove();
             }
         }
@@ -171,6 +172,11 @@ public class GraphDB {
         return nodes.get(v).lon;
     }
 
+    double locLon(long v) {
+        validateLocation(v);
+        return locations.get(v).lon;
+    }
+
     /**
      * Gets the latitude of a vertex.
      * @param v The id of the vertex.
@@ -181,14 +187,19 @@ public class GraphDB {
         return nodes.get(v).lat;
     }
 
+    double locLat(long v) {
+        validateLocation(v);
+        return locations.get(v).lat;
+    }
+
     /**
      * Gets the tagged name of a vertex.
      * @param v The id of the vertex.
      * @return The tagged name of the vertex.
      */
     String getName(long v) {
-        validateVertex(v);
-        return nodes.get(v).name;
+        validateLocation(v);
+        return locations.get(v).name;
     }
 
     /**
@@ -200,6 +211,18 @@ public class GraphDB {
     void addNode(long id, double lon, double lat) {
         Node node = new Node(lon, lat);
         nodes.put(id, node);
+    }
+
+    /**
+     * Keeps track of a new location with a name.
+     * @param id id of the location
+     * @param lon longitude of the node
+     * @param lat latitude of the location
+     * @param name name of the location
+     */
+    void addLocation(long id, double lon, double lat, String name) {
+        Location loc = new Location(lon, lat, name);
+        locations.put(id, loc);
     }
 
     /**
@@ -215,18 +238,18 @@ public class GraphDB {
     }
 
     /**
-     * Adds a location name to a node.
+     * Adds a location name to locations map and Trie.
      * @param id id of node for the given location name
      * @param locationName node's cleaned name
      */
-    void addName(long id, String locationName) {
+    void addName(long id, double lon, double lat, String locationName) {
         String cleanedName = cleanString(locationName);
 
         if (!names.containsKey(cleanedName)) {
             names.put(cleanedName, new LinkedList<>());
         }
         names.get(cleanedName).add(id);
-        nodes.get(id).name = locationName;
+        addLocation(id, lon, lat, locationName);
         st.put(cleanedName, id);
     }
 
@@ -287,19 +310,37 @@ public class GraphDB {
         }
     }
 
+    private void validateLocation(long v) {
+        if (!locations.containsKey(v)) {
+            throw new IllegalArgumentException("Vertex " + v + " does not have a name.");
+        }
+    }
+
     // Graph node that stores information about an OpenStreetMaps node
     private class Node {
         double lon;
         double lat;
         List<Long> adj;
         Set<String> wayNames;
-        String name = "";
 
         Node(double lon, double lat) {
             this.lon = lon;
             this.lat = lat;
             adj = new LinkedList<>();
             wayNames = new HashSet<>();
+        }
+    }
+
+    // Class to store information about locations with names
+    private class Location {
+        double lon;
+        double lat;
+        String name = "";
+
+        Location(double lon, double lat, String name) {
+            this.lon = lon;
+            this.lat = lat;
+            this.name = name;
         }
     }
 }

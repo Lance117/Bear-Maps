@@ -305,8 +305,8 @@ public class MapServer {
         List<Long> nodes = graph.getLocations(locationName);
         for (long v : nodes) {
             Map<String, Object> nodeInfo = new HashMap<>();
-            nodeInfo.put("lat", graph.lat(v));
-            nodeInfo.put("lon", graph.lon(v));
+            nodeInfo.put("lat", graph.locLat(v));
+            nodeInfo.put("lon", graph.locLon(v));
             nodeInfo.put("name", locationName);
             nodeInfo.put("id", v);
             result.add(nodeInfo);

@@ -40,6 +40,8 @@ public class GraphBuildingHandler extends DefaultHandler {
     private String wayName = "";
     private boolean validWay;
     private long id = -117;
+    private double lon = -650;
+    private double lat = -415;
 
     /**
      * Create a new GraphBuildingHandler.
@@ -75,8 +77,8 @@ public class GraphBuildingHandler extends DefaultHandler {
 
             /* TODO Use the above information to save a "node" to somewhere. */
             id = Long.parseLong(attributes.getValue("id"));
-            double lon = Double.parseDouble(attributes.getValue("lon"));
-            double lat = Double.parseDouble(attributes.getValue("lat"));
+            lon = Double.parseDouble(attributes.getValue("lon"));
+            lat = Double.parseDouble(attributes.getValue("lat"));
             g.addNode(id, lon, lat);
 
         } else if (qName.equals("way")) {
@@ -118,7 +120,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             node this tag belongs to. Remember XML is parsed top-to-bottom, so probably it's the
             last node that you looked at (check the first if-case). */
 //            System.out.println("Node's name: " + attributes.getValue("v"));
-            g.addName(id, attributes.getValue("v"));
+            g.addName(id, lon, lat, attributes.getValue("v"));
         }
     }
 
