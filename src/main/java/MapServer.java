@@ -285,7 +285,7 @@ public class MapServer {
      * cleaned <code>prefix</code>.
      */
     public static List<String> getLocationsByPrefix(String prefix) {
-        return new LinkedList<>();
+        return graph.keysWithPrefix(prefix);
     }
 
     /**
@@ -301,7 +301,17 @@ public class MapServer {
      * "id" : Number, The id of the node. <br>
      */
     public static List<Map<String, Object>> getLocations(String locationName) {
-        return new LinkedList<>();
+        List<Map<String, Object>> result = new LinkedList<>();
+        List<Long> nodes = graph.getLocations(locationName);
+        for (long v : nodes) {
+            Map<String, Object> nodeInfo = new HashMap<>();
+            nodeInfo.put("lat", graph.lat(v));
+            nodeInfo.put("lon", graph.lon(v));
+            nodeInfo.put("name", locationName);
+            nodeInfo.put("id", v);
+            result.add(nodeInfo);
+        }
+        return result;
     }
 
     /**

@@ -39,6 +39,7 @@ public class GraphBuildingHandler extends DefaultHandler {
     private List<Long> ways;
     private String wayName = "";
     private boolean validWay;
+    private long id = -117;
 
     /**
      * Create a new GraphBuildingHandler.
@@ -65,7 +66,6 @@ public class GraphBuildingHandler extends DefaultHandler {
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes)
             throws SAXException {
-        /* Some example code on how you might begin to parse XML files. */
         if (qName.equals("node")) {
             /* We encountered a new <node...> tag. */
             activeState = "node";
@@ -74,8 +74,7 @@ public class GraphBuildingHandler extends DefaultHandler {
 //            System.out.println("Node lat: " + attributes.getValue("lat"));
 
             /* TODO Use the above information to save a "node" to somewhere. */
-            /* Hint: A graph-like structure would be nice. */
-            long id = Long.parseLong(attributes.getValue("id"));
+            id = Long.parseLong(attributes.getValue("id"));
             double lon = Double.parseDouble(attributes.getValue("lon"));
             double lat = Double.parseDouble(attributes.getValue("lat"));
             g.addNode(id, lon, lat);
@@ -91,11 +90,6 @@ public class GraphBuildingHandler extends DefaultHandler {
             //System.out.println("Id of a node in this way: " + attributes.getValue("ref"));
 
             /* TODO Use the above id to make "possible" connections between the nodes in this way */
-            /* Hint1: It would be useful to remember what was the last node in this way. */
-            /* Hint2: Not all ways are valid. So, directly connecting the nodes here would be
-            cumbersome since you might have to remove the connections if you later see a tag that
-            makes this way invalid. Instead, think of keeping a list of possible connections and
-            remember whether this way is valid or not. */
             ways.add(Long.parseLong(attributes.getValue("ref")));
 
         } else if (activeState.equals("way") && qName.equals("tag")) {
@@ -108,7 +102,6 @@ public class GraphBuildingHandler extends DefaultHandler {
             } else if (k.equals("highway")) {
                 //System.out.println("Highway type: " + v);
                 /* TODO Figure out whether this way and its connections are valid. */
-                /* Hint: Setting a "flag" is good enough! */
                 if (ALLOWED_HIGHWAY_TYPES.contains(attributes.getValue("v"))) {
                     validWay = true;
                 }
@@ -125,6 +118,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             node this tag belongs to. Remember XML is parsed top-to-bottom, so probably it's the
             last node that you looked at (check the first if-case). */
 //            System.out.println("Node's name: " + attributes.getValue("v"));
+            g.addName(id, attributes.getValue("v"));
         }
     }
 
@@ -143,8 +137,6 @@ public class GraphBuildingHandler extends DefaultHandler {
     public void endElement(String uri, String localName, String qName) throws SAXException {
         if (qName.equals("way")) {
             /* We are done looking at a way. (We finished looking at the nodes, speeds, etc...)*/
-            /* Hint1: If you have stored the possible connections for this way, here's your
-            chance to actually connect the nodes together if the way is valid. */
 //            System.out.println("Finishing a way...");
             if (validWay) {
                 g.addWay(ways, wayName);
