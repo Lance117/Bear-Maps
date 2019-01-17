@@ -28,6 +28,7 @@ public class Router {
         /* Initialize structures to get shortest path */
         Map<Long, Long> edgeTo = new HashMap<>();
         Map<Long, Double> distTo = new HashMap<>();
+        Set<Long> visited = new HashSet<>();
         List<Long> route = new LinkedList<>();
         long src = g.closest(stlon, stlat);
         long dest = g.closest(destlon, destlat);
@@ -61,12 +62,15 @@ public class Router {
             if (curr == dest) {
                 break;
             }
-            for (long neighbor : g.adjacent(curr)) {
-                double distance = distTo.get(curr) + g.distance(curr, neighbor);
-                if (distance < distTo.get(neighbor)) {
-                    distTo.put(neighbor, distance);
-                    edgeTo.put(neighbor, curr);
-                    fringe.add(neighbor);
+            if (!visited.contains(curr)) {
+                visited.add(curr);
+                for (long neighbor : g.adjacent(curr)) {
+                    double distance = distTo.get(curr) + g.distance(curr, neighbor);
+                    if (distance < distTo.get(neighbor)) {
+                        distTo.put(neighbor, distance);
+                        edgeTo.put(neighbor, curr);
+                        fringe.add(neighbor);
+                    }
                 }
             }
         }
